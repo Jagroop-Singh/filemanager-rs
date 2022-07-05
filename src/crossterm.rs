@@ -8,6 +8,7 @@ use crossterm::{
         self, disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
     },
 };
+use glob::glob;
 
 use std::{error::Error, io, process::Command, time::Duration};
 
@@ -56,15 +57,15 @@ pub fn run_app<B: Backend>(
                         app.current_selection += 1;
                     }
                     KeyCode::Char('u') => {
-                        let files = vec![String::from(
-                            std::str::from_utf8(
-                                &Command::new("ls").output().expect("Ls Failed").stdout,
-                            )
-                            .unwrap(),
-                        )];
-                        for file in files {
-                            app.files.push(file);
+                        let files = glob("*").expect("Failed to read glob pattern");
+                        for entry in files {
+                            app.files
+                                .push(entry.unwrap().into_os_string().into_string().unwrap());
                         }
+                        //                        let files: Vec<u8> = Command::new("ls").output().unwrap().stdout;
+                        //                        let files = std::str::from_utf8(&files).unwrap();
+                        //                        //&Command::new("ls").output().expect("Ls Failed").stdout,
+                        //                        app.files.push(files.to_string());
                     }
                     KeyCode::Char('i') => {
                         app.mode = Mode::InputMode;
